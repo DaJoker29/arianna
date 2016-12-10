@@ -1,6 +1,6 @@
 {
   "name": "arianna",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Slackbot implementation of my Ariadne bot",
   "main": "index.js",
   "scripts": {
