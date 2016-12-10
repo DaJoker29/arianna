@@ -2,8 +2,7 @@
   "verbose": true,
   "env": {
     "NODE_ENV": "development",
-    "DEBUG": "arianna",
-    "SLACK_TOKEN": ""
+    "DEBUG": "arianna"
   },
   "ext": "js json",
   "ignore": [
