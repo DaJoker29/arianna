@@ -6,8 +6,7 @@ const WebClient = require('@slack/client').WebClient;
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 
 const config = require('./config.json');
-
-// const reminders = require('./libs/reminders.js');
+const reminders = require('./reminders.json');
 
 /**
  * Arianna - Zero Daedalus Slackbot
@@ -44,22 +43,14 @@ process.on('SIGINT', handleExit);
  * Functions
  */
 
+// Send a personalized motivational reminder to me
 function reminder() {
-  const today = new Date();
-  const day = today.getDay();
-  const messages = [
-    'South America is waiting. Take a step closer today.',
-    'All you want exists just beyond your comfort zone.',
-    'Show those around you that you love them by helping to solve one of their problems.',
-    'You only have one body. Show it some respect today. Exercise, eat right and meditate.',
-    'It takes a lifetime to build a good reputation and a moment to destroy it. Do some good today.',
-    'Stress and anxiety are silent killers. Look after your mental health today.',
-    'Go deeper today. Try to solve a problem that you couldn\'t before.',
-  ];
+  const day = (new Date()).getDay();
 
-  rtm.sendMessage(messages[day], 'D3DAMT9UL'); // Send a personalized message to me daily
+  rtm.sendMessage(reminders.messages[day], reminders.channel); 
 }
 
+// Posts a random quote from the quotes file
 function quote() {
   fs.readFile('quotes.txt', 'utf8', (err, data) => {
     if (err) {
@@ -74,6 +65,7 @@ function quote() {
   });
 }
 
+// Alerts the channel that the bot is down.
 function handleExit() {
   web.chat.postMessage(config.SLACK_CHANNEL, 'Going offline...', { as_user: true }, (err) => {
     process.exit(err ? 1 : 0);
