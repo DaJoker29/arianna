@@ -2,6 +2,7 @@
 const fs = require('fs');
 const schedule = require('node-schedule');
 const RtmClient = require('@slack/client').RtmClient;
+const WebClient = require('@slack/client').WebClient;
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 
 const config = require('./config.json');
@@ -17,6 +18,7 @@ console.log('Arianna Running...');
 
 const token = config.SLACK_TOKEN || '';
 const rtm = new RtmClient(token);
+const web = new WebClient(token);
 
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (data) => {
   console.log(`Logged in as ${data.self.name} of team ${data.team.name}, but not yet connected to a channel`);
@@ -34,6 +36,9 @@ schedule.scheduleJob('0 10 * * *', quote);
 
 // Watch Slack
 rtm.start();
+
+// Handle Exits
+process.on('SIGINT', handleExit);
 
 /**
  * Functions
@@ -66,5 +71,11 @@ function quote() {
       const quote = lines[rand].match(/".+"/g)[0].slice(1, -1);
       rtm.sendMessage(`> *_${quote}_*`, config.SLACK_CHANNEL);
     }
+  });
+}
+
+function handleExit() {
+  web.chat.postMessage(config.SLACK_CHANNEL, 'Going offline...', { as_user: true }, (err) => {
+    process.exit(err ? 1 : 0);
   });
 }
