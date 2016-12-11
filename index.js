@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const fs = require('fs');
 const schedule = require('node-schedule');
 const RtmClient = require('@slack/client').RtmClient;
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
@@ -24,11 +25,19 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (data) => {
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, () => {
   rtm.sendMessage('Back online...', config.SLACK_CHANNEL);
   reminder();
+  quote();
 });
 
-schedule.scheduleJob('0 */7 * * *', reminder); 
+// Schedule Repeated Tasks
+schedule.scheduleJob('0 */7 * * *', reminder);
+schedule.scheduleJob('0 10 * * *', quote);
 
+// Watch Slack
 rtm.start();
+
+/**
+ * Functions
+ */
 
 function reminder() {
   const today = new Date();
@@ -44,4 +53,18 @@ function reminder() {
   ];
 
   rtm.sendMessage(messages[day], 'D3DAMT9UL'); // Send a personalized message to me daily
+}
+
+function quote() {
+  fs.readFile('quotes.txt', 'utf8', (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      const lines = data.split('\n');
+      const rand = Math.floor(Math.random() * lines.length);
+
+      const quote = lines[rand].match(/".+"/g)[0].slice(1, -1);
+      rtm.sendMessage(`*_${quote}_*`, config.SLACK_CHANNEL);
+    }
+  });
 }
