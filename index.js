@@ -64,7 +64,7 @@ function quote() {
       const rand = Math.floor(Math.random() * lines.length);
 
       const quote = lines[rand].match(/".+"/g)[0].slice(1, -1);
-      rtm.sendMessage(`*_${quote}_*`, config.SLACK_CHANNEL);
+      rtm.sendMessage(`> *_${quote}_*`, config.SLACK_CHANNEL);
     }
   });
 }
