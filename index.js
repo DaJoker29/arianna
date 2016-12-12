@@ -25,19 +25,17 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (data) => {
 
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, () => {
   rtm.sendMessage('Back online...', config.SLACK_CHANNEL);
-  reminder();
-  quote();
 });
 
 // Schedule Repeated Tasks
-schedule.scheduleJob('0 */7 * * *', reminder);
+schedule.scheduleJob('0 */4 * * *', reminder);
 schedule.scheduleJob('0 10 * * *', quote);
 
 // Watch Slack
 rtm.start();
 
 // Handle Exits
-process.on('SIGINT', handleExit);
+process.on('exit', handleExit);
 
 /**
  * Functions
@@ -67,7 +65,7 @@ function quote() {
 
 // Alerts the channel that the bot is down.
 function handleExit() {
-  web.chat.postMessage(config.SLACK_CHANNEL, 'Going offline...', { as_user: true }, (err) => {
-    process.exit(err ? 1 : 0);
+  web.chat.postMessage(config.SLACK_CHANNEL, 'Going offline...', { as_user: true }, () => {
+    console.log('Goodbye!');
   });
 }
