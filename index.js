@@ -2,7 +2,6 @@
 const fs = require('fs');
 const schedule = require('node-schedule');
 const RtmClient = require('@slack/client').RtmClient;
-const WebClient = require('@slack/client').WebClient;
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 
 const config = require('./config.json');
@@ -17,25 +16,21 @@ console.log('Arianna Running...');
 
 const token = config.SLACK_TOKEN || '';
 const rtm = new RtmClient(token);
-const web = new WebClient(token);
 
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (data) => {
   console.log(`Logged in as ${data.self.name} of team ${data.team.name}, but not yet connected to a channel`);
 });
 
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, () => {
-  rtm.sendMessage('Back online...', config.SLACK_CHANNEL);
+  console.log('Back online...');
 });
 
 // Schedule Repeated Tasks
-schedule.scheduleJob('0 */4 * * *', reminder);
-schedule.scheduleJob('0 10 * * *', quote);
+schedule.scheduleJob('0 */6 * * *', reminder);
+schedule.scheduleJob('0 */6 * * *', quote);
 
 // Watch Slack
 rtm.start();
-
-// Handle Exits
-process.on('exit', handleExit);
 
 /**
  * Functions
@@ -60,12 +55,5 @@ function quote() {
       const quote = lines[rand].match(/".+"/g)[0].slice(1, -1);
       rtm.sendMessage(`> *_${quote}_*`, config.SLACK_CHANNEL);
     }
-  });
-}
-
-// Alerts the channel that the bot is down.
-function handleExit() {
-  web.chat.postMessage(config.SLACK_CHANNEL, 'Going offline...', { as_user: true }, () => {
-    console.log('Goodbye!');
   });
 }
