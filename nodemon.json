@@ -6,6 +6,8 @@
   },
   "ext": "js json",
   "ignore": [
-    "test"
+    "test",
+    "*.db",
+    "*.db-journal"
   ]
 }
