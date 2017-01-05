@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const schedule = require('node-schedule');
+const SQLite = require('sqlite3').verbose();
 const RtmClient = require('@slack/client').RtmClient;
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
+const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 
 const config = require('./config.json');
 const reminders = require('./reminders.json');
@@ -14,16 +16,32 @@ const reminders = require('./reminders.json');
 
 console.log('Arianna Running...');
 
-const token = config.SLACK_TOKEN || '';
-const rtm = new RtmClient(token);
+// Check for proper configuration
+if ('string' !== typeof config.SLACK_TOKEN) {
+  console.log('No slack token provided to config');
+  process.exit(1);
+}
+
+if (!fs.existsSync(config.DB_PATH)) {
+  console.log('Joke database not found');
+  process.exit(1);
+}
+
+const rtm = new RtmClient(config.SLACK_TOKEN);
+const db = new SQLite.Database(config.DB_PATH);
+
+let bot = '';
 
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (data) => {
+  bot = data.self;
   console.log(`Logged in as ${data.self.name} of team ${data.team.name}, but not yet connected to a channel`);
 });
 
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, () => {
-  console.log('Back online...');
+  console.log('Connection opened...');
 });
+
+rtm.on(RTM_EVENTS.MESSAGE, msgHandler);
 
 // Schedule Repeated Tasks
 schedule.scheduleJob('0 */6 * * *', reminder);
@@ -35,6 +53,30 @@ rtm.start();
 /**
  * Functions
  */
+
+function msgHandler(message) {
+  if (checkMessage(message)) {
+    // Check for Chuck Norris references
+    if (-1 < message.text.toLowerCase().indexOf('chuck norris')) {
+      db.get('SELECT id, joke FROM jokes ORDER BY used ASC, RANDOM() LIMIT 1', (err, record) => {
+        if (err) {
+          return console.error('DATABASE ERROR:', err);
+        }
+
+        rtm.sendMessage(record.joke, message.channel);
+        db.run('UPDATE jokes SET used = used + 1 WHERE id = ?', record.id);
+      });
+    }
+  }
+}
+
+// Check if message is a valid message to respond to.
+function checkMessage(message) {
+  const chatCheck = 'message' === message.type && !!message.text;
+  const channelCheck = 'string' === typeof message.channel;
+  const botCheck = message.user !== bot.id;
+  return chatCheck && channelCheck && botCheck;
+}
 
 // Send a personalized motivational reminder to me
 function reminder() {
