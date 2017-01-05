@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "preversion": "git checkout master && git merge --no-ff develop -m 'Pull changes for release bump'",
     "postversion": "git push && git push --tags && git checkout develop && git merge --no-ff master -m 'Sync Develop branch' && git push",
-    "install": "ln -si ../../tools/pre-commit.sh .git/hooks/pre-commit && node ./tools/databaseGenerator.js ./norrisbot.db",
+    "install": "ln -si ../../tools/pre-commit.sh .git/hooks/pre-commit",
     "start": "pm2 start process.json",
     "watch": "nodemon index.js --config nodemon.json",
     "dev": "npm run watch",
